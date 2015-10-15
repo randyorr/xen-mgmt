@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+import getpass
+import json
+import os
+import prettytable
+from xenClient import Client
+
+def main():
+
+    clients = []
+    pt = prettytable.PrettyTable(['name', 'ip', 'state', 'host', 'tags'])
+    pt.align = 'l'
+    c = Client()
+    vm_list = c.list()
+    for vm in vm_list:
+        name = vm['name']
+        ip = vm['ip']
+        state = vm['state']
+        host = vm['host']
+        tags = vm['tags']
+        pt.add_row([name, ip, state, host, tags])
+
+    print pt.get_string(sortby="name")
+    print str(len(pt._rows)) + ' total servers\n'
+
+if __name__ == "__main__":
+    main()

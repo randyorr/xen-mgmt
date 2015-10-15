@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import time
+import getpass
+import prettytable
+from fabric.api import *
+from fabric.colors import red, green, yellow, blue
+from xenClient import Client
+
+def bootstrap(host):
+    wd = os.path.dirname(__file__)
+    keyfile = os.path.join(wd, 'keys/bootstrap_key')
+    env.user = 'root'
+    env.key_filename = keyfile
+    env.disable_known_hosts = True
+    env.host_string = host
+    fqdn = run('facter fqdn')
+    split_fqdn = fqdn.split('.')
+    computer_name = '-'.join(split_fqdn[0:2])
+    print(yellow('joining the domain'))
+    print 'user:',
+    domain_user = raw_input()
+    run("adjoin -n %s --workstation -u %s cinsay.com" % (computer_name, domain_user))
+
+def main(vm_name):
+    c = Client()
+    templates = c.list_templates()
+    pt = prettytable.PrettyTable(["template name"])
+    pt.align = 'l'
+    for key in templates.keys():
+        pt.add_row([key])
+    print pt.get_string(sortby='template name')
+    print "pick a template:",
+    template_name = raw_input()
+    template_ref = templates[template_name]
+    created = False
+    try:
+        if c.create(vm_name, template_ref):
+            created = True
+    except Exception, e:
+        print "failed, %s" % e
+    if created:
+        print 'success, created %s' % vm_name
+        #poll for 60 seconds(roughly) waiting for server to boot and aquire an ip via dhcp
+        for i in range(60):
+            ip = c.get_vm_ip(vm_name)
+            if ip == None:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                time.sleep(1)
+            else:
+                print "We're alive @%s" % ip
+                time.sleep(5)
+                bootstrap(ip)
+                break
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    else:
+        print "usage: %s <vm-name>" % sys.argv[0]

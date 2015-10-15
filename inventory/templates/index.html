@@ -1,0 +1,52 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}via-platform inventory{% endblock %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/3cfcc339e89/integration/bootstrap/3/dataTables.bootstrap.css">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src=//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js></script>
+    <script src=http://cdn.datatables.net/plug-ins/3cfcc339e89/integration/bootstrap/3/dataTables.bootstrap.js></script>
+    <script>
+        $(document).ready(function() {
+            $('#inventory').DataTable( {
+                "order": [[0, "asc"]],
+                "paging": false,
+                "dom": '<"toolbar"> f'
+            });
+            $("div.toolbar").prepend('<h4>via-platform inventory</h4>');
+        });
+    </script>
+{% endblock %}
+{% block  navbar %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10">
+        <table id="inventory" class="table table-bordered table-striped table-condensed">
+            <thead>
+                <th>name</th>
+                <th>ip</th>
+                <th>host</th>
+                <th>tags</th>
+            </thead>
+            <tbody>
+        {% for entry in output %}
+                <tr>
+                    <td> {{ entry.name }} </td>
+                    <td> {{ entry.ip }} </td>
+                    <td> {{ entry.host }} </td>
+                    <td> {{ entry.tags }} </td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div> 
+</div>
+{% endblock %}
